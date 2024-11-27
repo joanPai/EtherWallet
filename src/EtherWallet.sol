@@ -12,8 +12,8 @@
 
 // Layout of Functions:
 // constructor
-// receive function 
-// fallback function 
+// receive function
+// fallback function
 // external
 // public
 // internal
@@ -29,45 +29,38 @@ import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/Reentr
 import {Ownable} from "lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract EtherWallet is Ownable, ReentrancyGuard {
-
     ///////////////
-    //error      //    
-    /////////////// 
+    //error      //
+    ///////////////
     error EtherWallet__WithdrawFailed();
+    error EtherWallet__insufficientBalance();
 
     ///////////////
-    //event      //    
-    /////////////// 
+    //event      //
+    ///////////////
 
-    event withdrawal(address indexed user, uint amount); 
-    
-    
+    event Withdrawal(address indexed user, uint256 amount);
+
     ///////////////
     //constructor//
-    ///////////////  
+    ///////////////
     constructor() Ownable(msg.sender) ReentrancyGuard() {}
 
-
-      
     ///////////////
     //functions  //
-    ///////////////  
+    ///////////////
     receive() external payable {}
 
-
-    function withdraw(uint amount) external onlyOwner nonReentrant {
+    function withdraw(uint256 amount) external onlyOwner nonReentrant {
+        if (address(this).balance < amount) revert EtherWallet__insufficientBalance();
         (bool success,) = owner().call{value: amount}("");
-        if( !success){
+        if (!success) {
             revert EtherWallet__WithdrawFailed();
         }
-        emit withdrawal(msg.sender, amount);
+        emit Withdrawal(msg.sender, amount);
     }
- 
 
-    function checkBalance() external view returns (uint){
+    function checkBalance() external view returns (uint256) {
         return address(this).balance;
     }
-
-
-
 }
